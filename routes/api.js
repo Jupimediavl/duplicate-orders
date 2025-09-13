@@ -4,7 +4,17 @@ const router = express.Router();
 
 // Helper function to extract phone number from order
 function getPhoneNumber(order) {
-  return order.customer?.phone || order.phone || order.billing_address?.phone || order.shipping_address?.phone || 'N/A';
+  const phone = order.customer?.phone || 
+                order.phone || 
+                order.billing_address?.phone || 
+                order.shipping_address?.phone ||
+                order.billingAddress?.phone ||
+                order.shippingAddress?.phone ||
+                order.customer?.default_address?.phone;
+  
+  console.log(`📱 Phone extraction for ${order.name || order.id}: customer.phone=${order.customer?.phone}, order.phone=${order.phone}, billing=${order.billing_address?.phone}, shipping=${order.shipping_address?.phone} → Result: ${phone || 'N/A'}`);
+  
+  return phone || 'N/A';
 }
 
 // Store settings (in memory for now, later we'll use a database)
