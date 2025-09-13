@@ -283,13 +283,15 @@ router.post('/webhooks/orders/create', async (req, res) => {
     const recentOrders = await shopify.getOrdersSince(startDate);
     console.log(`📦 Found ${recentOrders.length} orders in last ${appSettings.searchDays} days`);
     
-    // Find duplicates
+    // Find duplicates - show ALL orders for debugging
+    console.log(`🔍 Comparing phone ${phone} against all recent orders:`);
     const duplicateOrders = recentOrders.filter(existingOrder => {
       const existingPhone = getPhoneNumber(existingOrder);
       const isMatch = existingOrder.id !== order.id && existingPhone === phone && existingPhone !== 'N/A';
-      if (existingPhone !== 'N/A') {
-        console.log(`📞 ${existingOrder.name}: ${existingPhone} ${isMatch ? '✅ MATCH' : '❌ NO MATCH'}`);
-      }
+      
+      // Show every order comparison
+      console.log(`📞 ${existingOrder.name}: "${existingPhone}" vs "${phone}" → ${isMatch ? '✅ MATCH!' : '❌ no match'}`);
+      
       return isMatch;
     });
     
