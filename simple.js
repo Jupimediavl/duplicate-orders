@@ -16,7 +16,17 @@ app.get('/health', (req, res) => {
 
 // Simple test route
 app.get('/', (req, res) => {
-  res.send('Hello from Shopify Duplicates App!');
+  res.send(`
+    <html>
+      <head><title>Duplicates Detector</title></head>
+      <body>
+        <h1>🔍 Shopify Duplicates Detector</h1>
+        <p>App is running successfully!</p>
+        <p>API Health: <a href="/api/health">/api/health</a></p>
+        <p>Settings: <a href="/api/settings">/api/settings</a></p>
+      </body>
+    </html>
+  `);
 });
 
 // Auth callback
