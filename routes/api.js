@@ -273,12 +273,13 @@ router.post('/webhooks/orders/create', async (req, res) => {
     }
 
     console.log(`🔍 Checking order ${order.name} for duplicates (phone: ${phone})`);
-    console.log(`📅 Search date range: ${startDate.toISOString()} to ${new Date().toISOString()}`);
-    console.log(`🔎 Will search in ${recentOrders ? 'existing' : 'fetching'} orders...`);
 
     // Get orders from last X days to check for duplicates
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - appSettings.searchDays);
+    
+    console.log(`📅 Search date range: ${startDate.toISOString()} to ${new Date().toISOString()}`);
+    console.log(`🔎 Will search in orders from last ${appSettings.searchDays} days...`);
     
     const shopify = new ShopifyService(process.env.SHOPIFY_SHOP, process.env.SHOPIFY_ACCESS_TOKEN);
     const recentOrders = await shopify.getOrdersSince(startDate);
