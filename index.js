@@ -112,13 +112,13 @@ app.get('/', (req, res) => {
           
           // Initialize Shopify App Bridge
           const urlParams = new URLSearchParams(window.location.search);
-          const shop = urlParams.get('shop') || '${shop}';
+          const shop = urlParams.get('shop') || '` + shop + `';
           
           let app;
           if (window.ShopifyAppBridge && shop) {
             try {
               app = window.ShopifyAppBridge.createApp({
-                apiKey: '${process.env.SHOPIFY_API_KEY}',
+                apiKey: 'f7e5ea65bc5904db9b38f8f46099cb2c',
                 host: btoa(shop).replace(/=/g, ''),
                 forceRedirect: true
               });
