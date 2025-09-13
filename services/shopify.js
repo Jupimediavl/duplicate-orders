@@ -35,6 +35,7 @@ class ShopifyService {
     const queryParams = new URLSearchParams({
       limit: 250, // Maximum allowed
       status: 'any', // Get all orders
+      fields: 'id,name,phone,customer,billing_address,shipping_address,created_at,fulfillment_status,tags,note', // Include customer data
       ...params
     });
 
