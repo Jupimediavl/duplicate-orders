@@ -6,7 +6,7 @@
   "scripts": {
     "dev": "shopify app dev",
     "build": "shopify app build",
-    "start": "node simple.js",
+    "start": "node index.js",
     "vercel-build": "echo 'Build complete'",
     "test": "jest"
   },
