@@ -281,12 +281,19 @@ router.post('/webhooks/orders/create', async (req, res) => {
     
     const shopify = new ShopifyService(process.env.SHOPIFY_SHOP, process.env.SHOPIFY_ACCESS_TOKEN);
     const recentOrders = await shopify.getOrdersSince(startDate);
+    console.log(`📦 Found ${recentOrders.length} orders in last ${appSettings.searchDays} days`);
     
     // Find duplicates
     const duplicateOrders = recentOrders.filter(existingOrder => {
       const existingPhone = getPhoneNumber(existingOrder);
-      return existingOrder.id !== order.id && existingPhone === phone && existingPhone !== 'N/A';
+      const isMatch = existingOrder.id !== order.id && existingPhone === phone && existingPhone !== 'N/A';
+      if (existingPhone !== 'N/A') {
+        console.log(`📞 ${existingOrder.name}: ${existingPhone} ${isMatch ? '✅ MATCH' : '❌ NO MATCH'}`);
+      }
+      return isMatch;
     });
+    
+    console.log(`🔍 Found ${duplicateOrders.length} duplicates`);
 
     if (duplicateOrders.length > 0) {
       console.log(`🚨 DUPLICATE DETECTED! Order ${order.name} matches ${duplicateOrders.length} existing orders`);
