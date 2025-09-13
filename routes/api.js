@@ -273,6 +273,8 @@ router.post('/webhooks/orders/create', async (req, res) => {
     }
 
     console.log(`🔍 Checking order ${order.name} for duplicates (phone: ${phone})`);
+    console.log(`📅 Search date range: ${startDate.toISOString()} to ${new Date().toISOString()}`);
+    console.log(`🔎 Will search in ${recentOrders ? 'existing' : 'fetching'} orders...`);
 
     // Get orders from last X days to check for duplicates
     const startDate = new Date();
@@ -280,12 +282,16 @@ router.post('/webhooks/orders/create', async (req, res) => {
     
     const shopify = new ShopifyService(process.env.SHOPIFY_SHOP, process.env.SHOPIFY_ACCESS_TOKEN);
     const recentOrders = await shopify.getOrdersSince(startDate);
+    console.log(`📦 Found ${recentOrders.length} recent orders to check`);
     
     // Find orders with the same phone number (excluding the current order)
-    const duplicateOrders = recentOrders.filter(existingOrder => 
-      existingOrder.id !== order.id && 
-      getPhoneNumber(existingOrder) === phone
-    );
+    const duplicateOrders = recentOrders.filter(existingOrder => {
+      const existingPhone = getPhoneNumber(existingOrder);
+      console.log(`📞 Comparing: ${phone} vs ${existingPhone} (Order: ${existingOrder.name})`);
+      return existingOrder.id !== order.id && existingPhone === phone;
+    });
+    
+    console.log(`🔍 After filtering: found ${duplicateOrders.length} duplicates`);
 
     if (duplicateOrders.length > 0) {
       console.log(`🚨 DUPLICATE DETECTED! Order ${order.name} matches ${duplicateOrders.length} existing orders`);
