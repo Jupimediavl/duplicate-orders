@@ -17,14 +17,23 @@ app.get('/health', (req, res) => {
   res.json({ status: 'OK', timestamp: new Date().toISOString() });
 });
 
+// Auth callback route
+app.get('/auth/callback', (req, res) => {
+  // For now, just redirect to main app
+  res.redirect('/?shop=' + (req.query.shop || 'test-dupli.myshopify.com'));
+});
+
 // Main app route - serves the dashboard
 app.get('/', (req, res) => {
+  // Check if we have shop parameter (from Shopify)
+  const shop = req.query.shop || 'test-dupli.myshopify.com';
   res.send(`
     <html>
       <head>
         <title>Duplicates Detector</title>
         <meta charset="utf-8" />
         <meta name="viewport" content="width=device-width, initial-scale=1">
+        <script src="https://unpkg.com/@shopify/app-bridge@3"></script>
         <script src="https://unpkg.com/react@18/umd/react.development.js"></script>
         <script src="https://unpkg.com/react-dom@18/umd/react-dom.development.js"></script>
         <script src="https://unpkg.com/@babel/standalone/babel.min.js"></script>
@@ -100,6 +109,23 @@ app.get('/', (req, res) => {
         <div id="root"></div>
         <script type="text/babel">
           const { useState, useEffect } = React;
+          
+          // Initialize Shopify App Bridge
+          const urlParams = new URLSearchParams(window.location.search);
+          const shop = urlParams.get('shop') || '${shop}';
+          
+          let app;
+          if (window.ShopifyAppBridge && shop) {
+            try {
+              app = window.ShopifyAppBridge.createApp({
+                apiKey: '${process.env.SHOPIFY_API_KEY}',
+                host: btoa(shop).replace(/=/g, ''),
+                forceRedirect: true
+              });
+            } catch (e) {
+              console.log('App Bridge init failed, running standalone');
+            }
+          }
           
           function App() {
             const [settings, setSettings] = useState({ searchDays: 14 });
