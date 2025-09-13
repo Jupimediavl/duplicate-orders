@@ -1,0 +1,25 @@
+# Learn more about configuring your Shopify app at https://shopify.dev/docs/apps/tools/cli/configuration
+
+name = "Duplicates Detector"
+client_id = "f7e5ea65bc5904db9b38f8f46099cb2c"
+handle = "duplicates-detector"
+application_url = "https://localhost:3000"
+embedded = true
+
+[build]
+automatically_update_urls_on_dev = true
+dev_store_url = ""
+
+[access_scopes]
+scopes = "read_orders,write_orders,read_customers,write_customers"
+
+[auth]
+redirect_urls = [
+  "https://localhost:3000/auth/callback",
+]
+
+[webhooks]
+api_version = "2023-10"
+
+[pos]
+embedded = false
