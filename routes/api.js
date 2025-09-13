@@ -247,6 +247,8 @@ function getMockOrders() {
 router.post('/webhooks/orders/create', async (req, res) => {
   try {
     console.log('🔔 Received order creation webhook');
+    console.log('📋 Request headers:', JSON.stringify(req.headers, null, 2));
+    console.log('📦 Request body:', JSON.stringify(req.body, null, 2));
     
     // Parse webhook data - req.body should already be parsed by express.json()
     const order = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
