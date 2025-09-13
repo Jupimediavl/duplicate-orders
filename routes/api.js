@@ -4,17 +4,15 @@ const router = express.Router();
 
 // Helper function to extract phone number from order
 function getPhoneNumber(order) {
-  const phone = order.customer?.phone || 
-                order.phone || 
-                order.billing_address?.phone || 
-                order.shipping_address?.phone ||
-                order.billingAddress?.phone ||
-                order.shippingAddress?.phone ||
-                order.customer?.default_address?.phone;
-  
-  console.log(`📱 Phone extraction for ${order.name || order.id}: customer.phone=${order.customer?.phone}, order.phone=${order.phone}, billing=${order.billing_address?.phone}, shipping=${order.shipping_address?.phone} → Result: ${phone || 'N/A'}`);
-  
-  return phone || 'N/A';
+  // Try all possible phone fields
+  return order.customer?.phone || 
+         order.phone || 
+         order.billing_address?.phone || 
+         order.shipping_address?.phone ||
+         order.billingAddress?.phone ||
+         order.shippingAddress?.phone ||
+         order.customer?.default_address?.phone ||
+         'N/A';
 }
 
 // Store settings (in memory for now, later we'll use a database)
@@ -256,60 +254,39 @@ function getMockOrders() {
 // Webhook endpoint for new orders  
 router.post('/webhooks/orders/create', async (req, res) => {
   try {
-    console.log('🔔 Received order creation webhook');
-    console.log('📋 Request headers:', JSON.stringify(req.headers, null, 2));
-    console.log('📦 Request body:', JSON.stringify(req.body, null, 2));
-    
-    // Parse webhook data - req.body should already be parsed by express.json()
     const order = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
-    console.log(`📦 New order: ${order.name} (${order.id})`);
-    console.log(`📦 New order structure: customer=${JSON.stringify(order.customer)}`);
-    console.log(`📦 New order phone fields: phone=${order.phone}, billing_address=${JSON.stringify(order.billing_address)}, shipping_address=${JSON.stringify(order.shipping_address)}`);
+    console.log(`🔔 Processing order ${order.name} for duplicates`);
     
     if (!appSettings.webhookEnabled) {
-      console.log('⚠️ Webhooks disabled, skipping processing');
       return res.status(200).send('OK');
     }
 
     // Only process unfulfilled orders
     if (order.fulfillment_status && order.fulfillment_status !== 'unfulfilled') {
-      console.log(`⏭️ Skipping fulfilled order ${order.name}`);
       return res.status(200).send('OK');
     }
 
-    // Check for duplicates for this new order
+    // Get phone number
     const phone = getPhoneNumber(order);
     if (!phone || phone === 'N/A') {
-      console.log(`📞 No phone number found for order ${order.name}, skipping`);
+      console.log(`📞 No phone number found for order ${order.name}`);
       return res.status(200).send('OK');
     }
 
-    console.log(`🔍 Checking order ${order.name} for duplicates (phone: ${phone})`);
+    console.log(`🔍 Checking phone ${phone} for duplicates`);
 
-    // Get orders from last X days to check for duplicates
+    // Get recent orders
     const startDate = new Date();
     startDate.setDate(startDate.getDate() - appSettings.searchDays);
     
-    console.log(`📅 Search date range: ${startDate.toISOString()} to ${new Date().toISOString()}`);
-    console.log(`🔎 Will search in orders from last ${appSettings.searchDays} days...`);
-    
     const shopify = new ShopifyService(process.env.SHOPIFY_SHOP, process.env.SHOPIFY_ACCESS_TOKEN);
     const recentOrders = await shopify.getOrdersSince(startDate);
-    console.log(`📦 Found ${recentOrders.length} recent orders to check`);
     
-    // Log first few orders structure to compare with webhook data
-    if (recentOrders.length > 0) {
-      console.log(`📦 Sample existing order structure: ${JSON.stringify(recentOrders[0], null, 2)}`);
-    }
-    
-    // Find orders with the same phone number (excluding the current order)
+    // Find duplicates
     const duplicateOrders = recentOrders.filter(existingOrder => {
       const existingPhone = getPhoneNumber(existingOrder);
-      console.log(`📞 Comparing: ${phone} vs ${existingPhone} (Order: ${existingOrder.name})`);
-      return existingOrder.id !== order.id && existingPhone === phone;
+      return existingOrder.id !== order.id && existingPhone === phone && existingPhone !== 'N/A';
     });
-    
-    console.log(`🔍 After filtering: found ${duplicateOrders.length} duplicates`);
 
     if (duplicateOrders.length > 0) {
       console.log(`🚨 DUPLICATE DETECTED! Order ${order.name} matches ${duplicateOrders.length} existing orders`);
