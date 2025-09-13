@@ -1,25 +1,29 @@
 # Learn more about configuring your Shopify app at https://shopify.dev/docs/apps/tools/cli/configuration
 
 name = "Duplicates Detector"
-client_id = "f7e5ea65bc5904db9b38f8f46099cb2c"
+client_id = "ac7a2ce99ecc8ea781f16e5fad33daa8"
 handle = "duplicates-detector"
-application_url = "https://localhost:3000"
+application_url = "https://duplicates-app.vercel.app"
 embedded = true
 
 [build]
 automatically_update_urls_on_dev = true
-dev_store_url = ""
+dev_store_url = "wmkhwn-na.myshopify.com"
 
 [access_scopes]
 scopes = "read_orders,write_orders,read_customers,write_customers"
 
 [auth]
 redirect_urls = [
-  "https://localhost:3000/auth/callback",
+  "https://duplicates-app.vercel.app/auth/callback",
 ]
 
 [webhooks]
 api_version = "2023-10"
+
+[[webhooks.subscriptions]]
+topics = ["orders/create"]
+uri = "https://duplicates-app.vercel.app/api/webhooks/orders/create"
 
 [pos]
 embedded = false
