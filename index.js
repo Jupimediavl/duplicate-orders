@@ -27,7 +27,8 @@ app.get('/auth/callback', (req, res) => {
 app.get('/', (req, res) => {
   // Check if we have shop parameter (from Shopify)
   const shop = req.query.shop || 'test-dupli.myshopify.com';
-  res.send(`
+  
+  const html = `
     <html>
       <head>
         <title>Duplicates Detector</title>
@@ -423,7 +424,9 @@ app.get('/', (req, res) => {
         </script>
       </body>
     </html>
-  `);
+  `;
+  
+  res.send(html);
 });
 
 // For Vercel serverless, export the app instead of listening
