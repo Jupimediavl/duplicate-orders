@@ -263,6 +263,8 @@ router.post('/webhooks/orders/create', async (req, res) => {
     // Parse webhook data - req.body should already be parsed by express.json()
     const order = typeof req.body === 'string' ? JSON.parse(req.body) : req.body;
     console.log(`📦 New order: ${order.name} (${order.id})`);
+    console.log(`📦 New order structure: customer=${JSON.stringify(order.customer)}`);
+    console.log(`📦 New order phone fields: phone=${order.phone}, billing_address=${JSON.stringify(order.billing_address)}, shipping_address=${JSON.stringify(order.shipping_address)}`);
     
     if (!appSettings.webhookEnabled) {
       console.log('⚠️ Webhooks disabled, skipping processing');
@@ -294,6 +296,11 @@ router.post('/webhooks/orders/create', async (req, res) => {
     const shopify = new ShopifyService(process.env.SHOPIFY_SHOP, process.env.SHOPIFY_ACCESS_TOKEN);
     const recentOrders = await shopify.getOrdersSince(startDate);
     console.log(`📦 Found ${recentOrders.length} recent orders to check`);
+    
+    // Log first few orders structure to compare with webhook data
+    if (recentOrders.length > 0) {
+      console.log(`📦 Sample existing order structure: ${JSON.stringify(recentOrders[0], null, 2)}`);
+    }
     
     // Find orders with the same phone number (excluding the current order)
     const duplicateOrders = recentOrders.filter(existingOrder => {
